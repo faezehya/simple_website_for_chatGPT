@@ -1,0 +1,116 @@
+
+1. First, you'll need to install Flask, which is a lightweight web application framework for Python. You can do this by running the following command in your terminal:
+
+  
+pip3 install flask openai
+  
+
+This command installs both Flask and the OpenAI Python client.
+
+2. Next, create a new directory for your project (e.g., `mywebsite`), and navigate into it:
+
+  
+mkdir mywebsite
+cd mywebsite
+  
+
+3. Within this directory, create a new Python file named `app.py`. This file will contain the main logic for your application. 
+
+4. Paste the following code into `app.py`:
+
+  python
+from flask import Flask, request, render_template, session, redirect, url_for
+import openai
+
+app = Flask(__name__)
+app.secret_key = 'your secret key'
+
+@app.route('/', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        session['api_key'] = request.form['api_key']
+        return redirect(url_for('chat'))
+    return render_template('login.html')
+
+@app.route('/chat', methods=['GET', 'POST'])
+def chat():
+    if 'api_key' not in session:
+        return redirect(url_for('login'))
+
+    gpt_response = None
+    if request.method == 'POST':
+        message = request.form['message']
+        openai.api_key = session['api_key']
+        response = openai.ChatCompletion.create(
+          model="gpt-3.5-turbo",
+          messages=[
+                {"role": "system", "content": "You are chatting with OpenAI's GPT-3."},
+                {"role": "user", "content": message},
+            ]
+        )
+        gpt_response = response['choices'][0]['message']['content']
+    return render_template('chat.html', gpt_response=gpt_response)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=80)
+  
+
+5. In your project directory, create a new directory named `templates`. Flask uses this directory to look for HTML files. 
+
+  
+mkdir templates
+  
+
+6. Within the `templates` directory, create two new HTML files named `login.html` and `chat.html`. 
+
+7. Paste the following code into `login.html`:
+
+  html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login to GPT-3 Chat</title>
+</head>
+<body>
+    <h1>Login to GPT-3 Chat</h1>
+    <form method="POST">
+        <label for="api_key">API Key:</label>
+        <input type="text" id="api_key" name="api_key" required>
+        <input type="submit" value="Login">
+    </form>
+</body>
+</html>
+  
+
+8. Paste the following code into `chat.html`:
+
+  html
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GPT-3 Chat</title>
+</head>
+<body>
+    <h1>GPT-3 Chat</h1>
+    <form method="POST">
+        <label for="message">Your Message:</label>
+        <input type="text" id="message" name="message" required>
+        <input type="submit" value="Send">
+    </form>
+    {% if gpt_response %}
+    <h2>Response from GPT-3:</h2>
+    <p>{{ gpt_response }}</p>
+    {% endif %}
+</body>
+</html>
+
+
+9. Now you can run your application by executing the following command in your terminal:
+
+  
+python3 app.py
+  
+
+10. With this command, your website should be running on port 80 of your server. This means you can access your website by entering your server's IP address in a web browser.
+
+That's it! You now have a simple Flask application that lets you chat with OpenAI's GPT-3 model. Remember to replace `'your secret key'` in `app.py` with a real secret key for production deployments.
